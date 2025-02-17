@@ -140,19 +140,19 @@ module Danger
           }
           if fail_on_inline_comment
             if use_github_review
-              github.review.fail(offense_message, **kargs)
+              github.review.fail(offense_message, true, kargs[:file], kargs[:line])
             else
               fail(offense_message, **kargs)
             end
           elsif report_severity && %w[error fatal].include?(offense['severity'])
             if use_github_review
-              github.review.fail(offense_message, **kargs)
+              github.review.fail(offense_message, true, kargs[:file], kargs[:line])
             else
               fail(offense_message, **kargs)
             end
           else
             if use_github_review
-              github.review.warn(offense_message, **kargs)
+              github.review.warn(offense_message, true, kargs[:file], kargs[:line])
             else
               warn(offense_message, **kargs)
             end
@@ -184,19 +184,19 @@ module Danger
         end
         if fail_on_inline_comment
           if use_github_review
-            github.review.fail(grouped_offense_message, **kargs)
+            github.review.fail(grouped_offense_message, true, kargs[:file], kargs[:line])
           else
             fail(grouped_offense_message, **kargs)
           end
         elsif report_severity && %w[error fatal].include?(offense['severity'])
           if use_github_review
-            github.review.fail(grouped_offense_message, **kargs)
+            github.review.fail(grouped_offense_message, true, kargs[:file], kargs[:line])
           else
             fail(grouped_offense_message, **kargs)
           end
         else
           if use_github_review
-            github.review.warn(grouped_offense_message, **kargs)
+            github.review.warn(grouped_offense_message, true, kargs[:file], kargs[:line])
           else
             warn(grouped_offense_message, **kargs)
           end
