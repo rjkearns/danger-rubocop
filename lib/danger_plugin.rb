@@ -40,6 +40,7 @@ module Danger
       include_cop_names = config[:include_cop_names] || false
       rubocop_cmd = config[:rubocop_cmd] || 'rubocop'
       skip_bundle_exec = config[:skip_bundle_exec] || false
+      use_github_review = config[:use_github_review] || false
 
       files_to_lint = fetch_files_to_lint(files)
       files_to_report = rubocop(files_to_lint, force_exclusion, only_report_new_offenses, cmd: rubocop_cmd, config_path: config_path, skip_bundle_exec: skip_bundle_exec)
@@ -48,9 +49,9 @@ module Danger
       return report_failures(files_to_report, include_cop_names: include_cop_names) if report_danger
 
       if inline_comment && group_inline_comments
-        add_grouped_violation_for_each_line(files_to_report, fail_on_inline_comment, report_severity, include_cop_names: include_cop_names)
+        add_grouped_violation_for_each_line(files_to_report, fail_on_inline_comment, report_severity, use_github_review, include_cop_names: include_cop_names)
       elsif inline_comment
-        add_violation_for_each_line(files_to_report, fail_on_inline_comment, report_severity, include_cop_names: include_cop_names)
+        add_violation_for_each_line(files_to_report, fail_on_inline_comment, report_severity, use_github_review, include_cop_names: include_cop_names)
       else
         markdown offenses_message(files_to_report, include_cop_names: include_cop_names)
       end
@@ -129,7 +130,7 @@ module Danger
       end
     end
 
-    def add_violation_for_each_line(offending_files, fail_on_inline_comment, report_severity, include_cop_names: false)
+    def add_violation_for_each_line(offending_files, fail_on_inline_comment, report_severity, use_github_review, include_cop_names: false)
       offending_files.flat_map do |file|
         file['offenses'].map do |offense|
           offense_message = offense_message(offense, include_cop_names: include_cop_names)
@@ -138,17 +139,29 @@ module Danger
             line: offense['location']['line']
           }
           if fail_on_inline_comment
-            fail(offense_message, **kargs)
+            if use_github_review
+              github.review.fail(offense_message, **kargs)
+            else
+              fail(offense_message, **kargs)
+            end
           elsif report_severity && %w[error fatal].include?(offense['severity'])
-            fail(offense_message, **kargs)
+            if use_github_review
+              github.review.fail(offense_message, **kargs)
+            else
+              fail(offense_message, **kargs)
+            end
           else
-            warn(offense_message, **kargs)
+            if use_github_review
+              github.review.warn(offense_message, **kargs)
+            else
+              warn(offense_message, **kargs)
+            end
           end
         end
       end
     end
 
-    def add_grouped_violation_for_each_line(offending_files, fail_on_inline_comment, report_severity, include_cop_names: false)
+    def add_grouped_violation_for_each_line(offending_files, fail_on_inline_comment, report_severity, use_github_review, include_cop_names: false)
       grouped_offense_messages = Hash.new { |h, k| h[k] = [] }
       offending_files.flat_map do |file|
         file['offenses'].map do |offense|
@@ -170,11 +183,23 @@ module Danger
           offense_messages[0]
         end
         if fail_on_inline_comment
-          fail(grouped_offense_message, **kargs)
+          if use_github_review
+            github.review.fail(grouped_offense_message, **kargs)
+          else
+            fail(grouped_offense_message, **kargs)
+          end
         elsif report_severity && %w[error fatal].include?(offense['severity'])
-          fail(grouped_offense_message, **kargs)
+          if use_github_review
+            github.review.fail(grouped_offense_message, **kargs)
+          else
+            fail(grouped_offense_message, **kargs)
+          end
         else
-          warn(grouped_offense_message, **kargs)
+          if use_github_review
+            github.review.warn(grouped_offense_message, **kargs)
+          else
+            warn(grouped_offense_message, **kargs)
+          end
         end
       end
     end
