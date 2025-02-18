@@ -152,7 +152,7 @@ module Danger
             end
           else
             if use_github_review
-              github.review.message(offense_message, false, file['path'])
+              github.review.markdown(offense_message, file['path'], offense['location']['line'])
             else
               warn(offense_message, **kargs)
             end
@@ -196,7 +196,7 @@ module Danger
           end
         else
           if use_github_review
-            github.review.message(offense_message, false, file['path'])
+            github.review.markdown(offense_message, kargs[:file], kargs[:line])
           else
             warn(grouped_offense_message, **kargs)
           end
