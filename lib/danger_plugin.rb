@@ -152,7 +152,7 @@ module Danger
             end
           else
             if use_github_review
-              github.review.message(offense_message, false)
+              github.review.message(offense_message, false, file['path'])
             else
               warn(offense_message, **kargs)
             end
@@ -196,7 +196,7 @@ module Danger
           end
         else
           if use_github_review
-            github.review.message(grouped_offense_message, false)
+            github.review.message(offense_message, false, file['path'])
           else
             warn(grouped_offense_message, **kargs)
           end
